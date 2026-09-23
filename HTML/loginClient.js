@@ -15,7 +15,7 @@ formE1.addEventListener('submit', (event) => {
         Realiza validaciones en los datos del formulario antes de procesar
         */
 
-	if (data.id == '' || data.password == '') {
+	if (data.contacto == '' || data.password == '') {
 		console.log('debe indicar usuario');
 		document.getElementById('resultado1').style.color = 'RED';
 		document.getElementById('resultado1').style.textAlign = 'center';
@@ -24,7 +24,7 @@ formE1.addEventListener('submit', (event) => {
 		return;
 	}
 
-	if (data.id == 'pec') {   /*--Fix hecho por  Germán Lombardi IS1-2025 */
+	if (data.contacto == 'pec') {   /*--Fix hecho por  Germán Lombardi IS1-2025 */
 		console.log('pec no es bienvenido en éste sistema');
 		const m = '<li>El usuario <pec> no es bienvenido en éste sistema</li>';
 		document.getElementById('resultado2').style.color = 'RED';
@@ -57,7 +57,7 @@ formE1.addEventListener('submit', (event) => {
 	};
 
 	const RESTAPI = {
-		loginCliente: 'http://localhost:8080/api/loginCliente',
+		loginCliente: 'http://localhost:8080/api/loginClienteEmail',
 		listarTicket: 'http://localhost:8080/api/listarTicket',
 	};
 
@@ -71,7 +71,7 @@ formE1.addEventListener('submit', (event) => {
         Crea estructuras para acceder a data del cliente
         */
 	    const login = {
-	        id: data.id,
+	        contacto: data.contacto,
 		    password: data.password
 		}	
 

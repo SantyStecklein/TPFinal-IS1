@@ -99,19 +99,19 @@ app.get('/api/cliente', (req,res) => {
   /api/loginCliente
   Esta API permite acceder a un cliente por ID y comparar la password pasada en un JSON en el cuerpo con la indicada en el DB
 */  
-app.post('/api/loginCliente', (req,res) => {
+app.post('/api/loginClienteEmail', (req,res) => {
 
-    const { id } = req.body;
+    const { contacto } = req.body;
     const {password} = req.body;
 
-    console.log("loginCliente: id("+id+") password ("+password+")");
+    console.log("loginCliente: contacto("+contacto+") password ("+password+")");
 
     if (!password) {
         res.status(400).send({response : "ERROR" , message : "Password no informada"});
         return;
     }    
-    if (!id) {
-        res.status(400).send({response : "ERROR" , message : "id no informado"});
+    if (!contacto) {
+        res.status(400).send({response : "ERROR" , message : "Contacto no informado"});
         return;
     }    
 
@@ -119,7 +119,7 @@ app.post('/api/loginCliente', (req,res) => {
         var params = {
             TableName: "cliente",
             Key: {
-                "id" : id
+                "id" : contacto
             }
         };
         docClient.get(params, function (err, data) {
@@ -160,12 +160,12 @@ app.post('/api/loginCliente', (req,res) => {
 */
 
 app.post('/api/getCliente/:id', (req,res) => {
-    const { id } = req.params;
-    console.log("getCliente: id("+id+")");
+    const { contacto } = req.params;
+    console.log("getCliente: contacto("+contacto+")");
     var params = {
         TableName: "cliente",
         Key: {
-            "id" : id
+            "id" : contacto
             //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
              }
         };
@@ -275,17 +275,17 @@ Permite actualizar datos del cliente contacto, nombre, estado de activo y regist
 */
 app.post('/api/updateCliente', (req,res) => {
     
-    const {id} = req.body;
+    const {contacto} = req.body;
     const {nombre}   = req.body; 
     const {password} = req.body;
 
     var activo = ((req.body.activo+'').toLowerCase() === 'true')
     var registrado = ((req.body.registrado+'').toLowerCase() === 'true')
 
-    console.log("updateCliente: id("+id+") nombre("+nombre+") password("+password+") activo("+activo+") registrado("+registrado+")");
+    console.log("updateCliente: contacto("+contacto+") nombre("+nombre+") password("+password+") activo("+activo+") registrado("+registrado+")");
 
-    if (!id) {
-        res.status(400).send({response : "ERROR" , message: "Id no informada"});
+    if (!contacto) {
+        res.status(400).send({response : "ERROR" , message: "Contacto no informado"});
         return;
     }
 
@@ -302,7 +302,7 @@ app.post('/api/updateCliente', (req,res) => {
     var params = {
         TableName: "cliente",
         Key: {
-            "id" : id
+            "id" : contacto
             //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
              }
         };
@@ -334,7 +334,7 @@ app.post('/api/updateCliente', (req,res) => {
                         ":r": registrado 
                    }, 
                    Key: { 
-                       "id": id 
+                       "id": contacto 
                    }, 
                    ReturnValues: "ALL_NEW", 
                    TableName: "cliente", 
@@ -360,11 +360,11 @@ Permite cambiar la password de un cliente
 */
 app.post('/api/resetCliente', (req,res) => {
     
-    const {id}       = req.body;
+    const {contacto}       = req.body;
     const {password} = req.body;
  
-    if (!id) {
-        res.status(400).send({response : "ERROR" , message: "Id no informada"});
+    if (!contacto) {
+        res.status(400).send({response : "ERROR" , message: "Contacto no informado"});
         return;
     }
 
@@ -376,7 +376,7 @@ app.post('/api/resetCliente', (req,res) => {
     var params = {
         TableName: "cliente",
         Key: {
-            "id" : id
+            "id" : contacto
             //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
              }
         };
@@ -401,7 +401,7 @@ app.post('/api/resetCliente', (req,res) => {
                         ":p": password 
                    }, 
                    Key: { 
-                       "id": id 
+                       "id": contacto 
                    }, 
                    ReturnValues: "ALL_NEW", 
                    TableName: "cliente", 
