@@ -95,69 +95,135 @@ app.get('/api/cliente', (req,res) => {
 });
 
 
+
 /*---
   /api/loginCliente
   Esta API permite acceder a un cliente por ID y comparar la password pasada en un JSON en el cuerpo con la indicada en el DB
 */  
-app.post('/api/loginCliente', (req,res) => {
+// app.post('/api/loginCliente', (req,res) => {
 
-    const { id } = req.body;
-    const {password} = req.body;
+//     const { id } = req.body;
+//     const {password} = req.body;
 
-    console.log("loginCliente: id("+id+") password ("+password+")");
+//     console.log("loginCliente: id("+id+") password ("+password+")");
+
+//     if (!password) {
+//         res.status(400).send({response : "ERROR" , message : "Password no informada"});
+//         return;
+//     }    
+//     if (!id) {
+//         res.status(400).send({response : "ERROR" , message : "id no informado"});
+//         return;
+//     }    
+
+//     let getClienteByKey = function () {
+//         var params = {
+//             TableName: "cliente",
+//             Key: {
+//                 "id" : id
+//             }
+//         };
+//         docClient.get(params, function (err, data) {
+//             if (err) {
+//                 res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
+//             }
+//             else {
+//                 if (Object.keys(data).length == 0) {
+//                     res.status(400).send({response : "ERROR" , message : "Cliente invalido"});
+//                 } else {
+//                     const paswd=jsonParser('password',data.Item);
+//                     const activo=jsonParser('activo',data.Item);
+//                     const id=jsonParser('id',data.Item);
+//                     const contacto=jsonParser('contacto',data.Item);
+//                     if (password == paswd) {
+//                         if (activo == true) {
+//                             const nombre=jsonParser('nombre',data.Item);
+//                             const fecha_ultimo_ingreso=jsonParser('fecha_ultimo_ingreso',data.Item);
+//                             res.status(200).send(JSON.stringify({response : "OK", "id" : id, "nombre" : nombre, "contacto" : contacto, "fecha_ultimo_ingreso": fecha_ultimo_ingreso}));    
+//                         } else {
+//                             res.status(400).send(JSON.stringify({response : "ERROR", message : "Cliente no activo"}));    
+//                         }
+//                     } else {
+//                        res.status(400).send(JSON.stringify({response : "ERROR" , message : "usuario incorrecto"}));
+//                     }    
+//             }    
+//             }
+//         })
+//     }
+//     getClienteByKey();
+
+// });
+
+/*---
+  /api/loginClienteEmail
+  Permite loguear a un cliente usando su correo electrónico (campo "contacto")
+  en vez de su ID, que es largo y difícil de recordar (TP Final Integrador).
+
+  Diferencia clave con /api/loginCliente: ese endpoint usa docClient.get()
+  porque conoce la clave primaria exacta (el id). Acá NO tenemos el id, solo
+  el contacto (que no es la clave primaria de la tabla) - por eso hay que
+  recorrer la tabla con un scan() y filtrar por el campo contacto, en vez
+  de pedir un único registro por clave.
+*/
+app.post('/api/loginClienteEmail', (req,res) => {
+
+    const { contacto } = req.body;
+    const { password } = req.body;
+
+    console.log("loginClienteEmail: contacto("+contacto+") password ("+password+")");
 
     if (!password) {
         res.status(400).send({response : "ERROR" , message : "Password no informada"});
         return;
-    }    
-    if (!id) {
-        res.status(400).send({response : "ERROR" , message : "id no informado"});
-        return;
-    }    
-
-    let getClienteByKey = function () {
-        var params = {
-            TableName: "cliente",
-            Key: {
-                "id" : id
-            }
-        };
-        docClient.get(params, function (err, data) {
-            if (err) {
-                res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
-            }
-            else {
-                if (Object.keys(data).length == 0) {
-                    res.status(400).send({response : "ERROR" , message : "Cliente invalido"});
-                } else {
-                    const paswd=jsonParser('password',data.Item);
-                    const activo=jsonParser('activo',data.Item);
-                    const id=jsonParser('id',data.Item);
-                    const contacto=jsonParser('contacto',data.Item);
-                    if (password == paswd) {
-                        if (activo == true) {
-                            const nombre=jsonParser('nombre',data.Item);
-                            const fecha_ultimo_ingreso=jsonParser('fecha_ultimo_ingreso',data.Item);
-                            res.status(200).send(JSON.stringify({response : "OK", "id" : id, "nombre" : nombre, "contacto" : contacto, "fecha_ultimo_ingreso": fecha_ultimo_ingreso}));    
-                        } else {
-                            res.status(400).send(JSON.stringify({response : "ERROR", message : "Cliente no activo"}));    
-                        }
-                    } else {
-                       res.status(400).send(JSON.stringify({response : "ERROR" , message : "usuario incorrecto"}));
-                    }    
-            }    
-            }
-        })
     }
-    getClienteByKey();
+    if (!contacto) {
+        res.status(400).send({response : "ERROR" , message : "contacto (e-mail) no informado"});
+        return;
+    }
 
+    var paramsScan = {
+        TableName: "cliente",
+        FilterExpression: 'contacto = :contacto',
+        ExpressionAttributeValues: { ':contacto': contacto }
+    };
+
+    docClient.scan(paramsScan, function (err, data) {
+        if (err) {
+            res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
+            return;
+        }
+        if (!data.Items || data.Items.length == 0) {
+            res.status(400).send({response : "ERROR" , message : "Cliente invalido"});
+            return;
+        }
+
+        // console.log("Cantidad encontrada para " + contacto + ": " + data.Items.length);
+        // console.log(JSON.stringify(data.Items, null, 2));
+
+        const cliente = data.Items[0];
+        const paswd = jsonParser('password', cliente);
+        const activo = jsonParser('activo', cliente);
+        const id = jsonParser('id', cliente);
+        const nombre = jsonParser('nombre', cliente);
+        const fecha_ultimo_ingreso = jsonParser('fecha_ultimo_ingreso', cliente);
+
+        if (password != paswd) {
+            res.status(400).send(JSON.stringify({response : "ERROR" , message : "usuario incorrecto"}));
+            return;
+        }
+        if (activo != true) {
+            res.status(400).send(JSON.stringify({response : "ERROR", message : "Cliente no activo"}));
+            return;
+        }
+        res.status(200).send(JSON.stringify({response : "OK", "id" : id, "nombre" : nombre, "contacto" : contacto, "fecha_ultimo_ingreso": fecha_ultimo_ingreso}));
+    });
 });
 
 
-/*-----------
-  /api/getCliente
-  Esta API permite acceder a un cliente dado su id
-*/
+// /*-----------
+//   /api/getCliente
+//   Esta API permite acceder a un cliente dado su id
+// */
 
 app.post('/api/getCliente/:id', (req,res) => {
     const { id } = req.params;
@@ -184,6 +250,7 @@ app.post('/api/getCliente/:id', (req,res) => {
 
 
 } );
+
 
 /*---------
 Función para realizar el SCAN de un DB de cliente usando contacto como clave para la búsqueda (no es clave formal del DB)
