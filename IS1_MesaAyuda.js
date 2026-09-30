@@ -104,7 +104,7 @@ app.post('/api/loginClienteEmail', (req,res) => {
     const { contacto } = req.body;
     const {password} = req.body;
 
-    console.log("loginCliente: contacto("+contacto+") password ("+password+")");
+    console.log("loginCliente: Intento de acceso de contacto("+contacto+")");
 
     if (!password) {
         res.status(400).send({response : "ERROR" , message : "Password no informada"});
