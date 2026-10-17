@@ -226,12 +226,12 @@ app.post('/api/loginClienteEmail', (req,res) => {
 // */
 
 app.post('/api/getCliente/:id', (req,res) => {
-    const { contacto } = req.params;
-    console.log("getCliente: contacto("+contacto+")");
+    const { id } = req.params;
+    console.log("getCliente: contacto("+id+")");
     var params = {
         TableName: "cliente",
         Key: {
-            "id" : contacto
+            "id" : id
             //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
              }
         };
@@ -342,17 +342,17 @@ Permite actualizar datos del cliente contacto, nombre, estado de activo y regist
 */
 app.post('/api/updateCliente', (req,res) => {
     
-    const {contacto} = req.body;
+    const {id} = req.body;
     const {nombre}   = req.body; 
     const {password} = req.body;
 
     var activo = ((req.body.activo+'').toLowerCase() === 'true')
     var registrado = ((req.body.registrado+'').toLowerCase() === 'true')
 
-    console.log("updateCliente: contacto("+contacto+") nombre("+nombre+") password("+password+") activo("+activo+") registrado("+registrado+")");
+    console.log("updateCliente: id("+id+") nombre("+nombre+") password("+password+") activo("+activo+") registrado("+registrado+")");
 
-    if (!contacto) {
-        res.status(400).send({response : "ERROR" , message: "Contacto no informado"});
+    if (!id) {
+        res.status(400).send({response : "ERROR" , message: "Id no informada"});
         return;
     }
 
@@ -369,7 +369,7 @@ app.post('/api/updateCliente', (req,res) => {
     var params = {
         TableName: "cliente",
         Key: {
-            "id" : contacto
+            "id" : id
             //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
              }
         };
@@ -401,7 +401,7 @@ app.post('/api/updateCliente', (req,res) => {
                         ":r": registrado 
                    }, 
                    Key: { 
-                       "id": contacto 
+                       "id": id 
                    }, 
                    ReturnValues: "ALL_NEW", 
                    TableName: "cliente", 
@@ -427,11 +427,11 @@ Permite cambiar la password de un cliente
 */
 app.post('/api/resetCliente', (req,res) => {
     
-    const {contacto}       = req.body;
+    const {id}       = req.body;
     const {password} = req.body;
  
-    if (!contacto) {
-        res.status(400).send({response : "ERROR" , message: "Contacto no informado"});
+    if (!id) {
+        res.status(400).send({response : "ERROR" , message: "Id no informada"});
         return;
     }
 
@@ -443,7 +443,7 @@ app.post('/api/resetCliente', (req,res) => {
     var params = {
         TableName: "cliente",
         Key: {
-            "id" : contacto
+            "id" : id
             //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
              }
         };
@@ -468,7 +468,7 @@ app.post('/api/resetCliente', (req,res) => {
                         ":p": password 
                    }, 
                    Key: { 
-                       "id": contacto 
+                       "id": id 
                    }, 
                    ReturnValues: "ALL_NEW", 
                    TableName: "cliente", 
