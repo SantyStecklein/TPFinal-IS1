@@ -208,7 +208,7 @@ app.post('/api/loginClienteEmail', (req,res) => {
         const fecha_ultimo_ingreso = jsonParser('fecha_ultimo_ingreso', cliente);
 
         if (password != paswd) {
-            res.status(400).send(JSON.stringify({response : "ERROR" , message : "usuario incorrecto"}));
+            res.status(400).send(JSON.stringify({response : "INVALIDO" , message : "usuario incorrecto"}));
             return;
         }
         if (activo != true) {
