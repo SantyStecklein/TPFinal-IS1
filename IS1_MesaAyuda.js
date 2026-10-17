@@ -227,7 +227,7 @@ app.post('/api/loginClienteEmail', (req,res) => {
 
 app.post('/api/getCliente/:id', (req,res) => {
     const { id } = req.params;
-    console.log("getCliente: contacto("+id+")");
+    console.log("getCliente: id("+id+")");
     var params = {
         TableName: "cliente",
         Key: {
