@@ -97,6 +97,7 @@ app.get('/api/cliente', (req,res) => {
 
 
 /*---
+   ---->>>> ESTO QUE SIGUE DEBAJO ES EL CODIGO ORIGINAL, QUE FUE COMENTADO POR LAS DUDAS PERO EN UN FUTURO HABRIA QUE BORRARLO <<<<----
   /api/loginCliente
   Esta API permite acceder a un cliente por ID y comparar la password pasada en un JSON en el cuerpo con la indicada en el DB
 */  
@@ -261,7 +262,7 @@ async function scanDb(contacto) {
     const paramsScan = { // ScanInput
       TableName: "cliente", // required
       Select: "ALL_ATTRIBUTES" || "ALL_PROJECTED_ATTRIBUTES" || "SPECIFIC_ATTRIBUTES" || "COUNT",
-      FilterExpression : 'id = :contacto',
+      FilterExpression : 'contacto = :contacto OR id = :contacto', // TPF punto 3: busca el correo en contacto (clientes originales) o en id (altas anteriores)
       ExpressionAttributeValues : {':contacto' : scanKey}
     };      
     var objectPromise = await docClient.scan(paramsScan).promise().then((data) => {
@@ -285,6 +286,7 @@ app.post('/api/addCliente', (req,res) => {
         res.status(400).send({response : "ERROR" , message: "Password no informada"});
         return;
     }
+
     if (!nombre) {
         res.status(400).send({response : "ERROR", message : "Nombre no informado"});
         return;
@@ -308,15 +310,16 @@ app.post('/api/addCliente', (req,res) => {
         hoy = dd + '/' + mm + '/' + yyyy;
     
         const newCliente = {
-         id                    : contacto,
-         nombre                : nombre,
-         password              : password,
-         activo                : true,
-         registrado            : true,
-         primer_ingreso        : false,
-         fecha_alta            : hoy,
-         fecha_cambio_password : hoy,
-         fecha_ultimo_ingreso  : hoy,
+            id                    : crypto.randomUUID(),
+            contacto              : contacto,   // TPF punto 3: guarda el correo también en contacto, que es donde lo busca el login por e-mail
+            nombre                : nombre,
+            password              : password,
+            activo                : true,
+            registrado            : true,
+            primer_ingreso        : false,
+            fecha_alta            : hoy,
+            fecha_cambio_password : hoy,
+            fecha_ultimo_ingreso  : hoy,
         };
     
         const paramsPut = {
