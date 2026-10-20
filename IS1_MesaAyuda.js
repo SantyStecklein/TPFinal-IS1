@@ -322,7 +322,7 @@ app.post('/api/addCliente', (req,res) => {
             fecha_ultimo_ingreso  : hoy,
         };
     
-        const paramsPut = {
+        const paramsPut = { //Sirve para dar de alta un nuevo cliente en la tabla "cliente".
           TableName: "cliente",
           Item: newCliente,
           ConditionExpression:'attribute_not_exists(id)',
