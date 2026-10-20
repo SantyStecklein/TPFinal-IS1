@@ -426,66 +426,123 @@ app.post('/api/updateCliente', (req,res) => {
 /api/resetCliente
 Permite cambiar la password de un cliente
 */
-app.post('/api/resetCliente', (req,res) => {
+// app.post('/api/resetCliente', (req,res) => {
     
-    const {id}       = req.body;
-    const {password} = req.body;
+//     const {id}       = req.body;
+//     const {password} = req.body;
  
-    if (!id) {
-        res.status(400).send({response : "ERROR" , message: "Id no informada"});
-        return;
-    }
+//     if (!id) {
+//         res.status(400).send({response : "ERROR" , message: "Id no informada"});
+//         return;
+//     }
 
-    if (!password) {
-        res.status(400).send({response : "ERROR" , message: "Password no informada"});
-        return;
-    }
+//     if (!password) {
+//         res.status(400).send({response : "ERROR" , message: "Password no informada"});
+//         return;
+//     }
 
-    var params = {
-        TableName: "cliente",
-        Key: {
-            "id" : id
-            //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
-             }
-        };
+//     var params = {
+//         TableName: "cliente",
+//         Key: {
+//             "id" : id
+//             //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
+//              }
+//         };
         
-    docClient.get(params, function (err, data) {
-        if (err)  {
-            res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+ null}));
-            return;
-        } else {
+//     docClient.get(params, function (err, data) {
+//         if (err)  {
+//             res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+ null}));
+//             return;
+//         } else {
 
-            if (Object.keys(data).length == 0) {
-                res.status(400).send(JSON.stringify({"response":"ERROR",message : "Cliente no existe"}),null,2);
-                return;
-            } else {
+//             if (Object.keys(data).length == 0) {
+//                 res.status(400).send(JSON.stringify({"response":"ERROR",message : "Cliente no existe"}),null,2);
+//                 return;
+//             } else {
 
-                const paramsUpdate = { 
+//                 const paramsUpdate = { 
    
-                    ExpressionAttributeNames: { 
-                         "#p": "password" 
-                    }, 
-                    ExpressionAttributeValues: { 
-                        ":p": password 
-                   }, 
-                   Key: { 
-                       "id": id 
-                   }, 
-                   ReturnValues: "ALL_NEW", 
-                   TableName: "cliente", 
-                   UpdateExpression: "SET #p = :p" 
-                };
-                docClient.update(paramsUpdate, function (err, data) {
-                    if (err)  {
-                        res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
-                        return;
-                    } else {
-                        res.status(200).send(JSON.stringify({response : "OK", message : "updated" , "data": data}));
-                    }    
-                });    
-            }
-        }    
-    })
+//                     ExpressionAttributeNames: { 
+//                          "#p": "password" 
+//                     }, 
+//                     ExpressionAttributeValues: { 
+//                         ":p": password 
+//                    }, 
+//                    Key: { 
+//                        "id": id 
+//                    }, 
+//                    ReturnValues: "ALL_NEW", 
+//                    TableName: "cliente", 
+//                    UpdateExpression: "SET #p = :p" 
+//                 };
+//                 docClient.update(paramsUpdate, function (err, data) {
+//                     if (err)  {
+//                         res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
+//                         return;
+//                     } else {
+//                         res.status(200).send(JSON.stringify({response : "OK", message : "updated" , "data": data}));
+//                     }    
+//                 });    
+//             }
+//         }    
+//     })
+// });
+app.post('/api/resetCliente', async (req, res) => {
+    const identificador = req.body.contacto || req.body.id;
+    const { password } = req.body;
+
+    console.log("==> /api/resetCliente recibido:", { identificador, password });
+
+    if (!identificador) {
+        return res.status(400).send({ response: "ERROR", message: "Id o contacto no informado" });
+    }
+    if (!password) {
+        return res.status(400).send({ response: "ERROR", message: "Password no informada" });
+    }
+
+    try {
+        const resultDb = await scanDb(identificador);
+        console.log("==> Clientes encontrados en scanDb:", JSON.stringify(resultDb, null, 2));
+
+        if (!resultDb || resultDb.length === 0) {
+            return res.status(400).send({ response: "ERROR", message: "Cliente no existe" });
+        }
+
+        var hoy = new Date();
+        var dd = String(hoy.getDate()).padStart(2, '0');
+        var mm = String(hoy.getMonth() + 1).padStart(2, '0');
+        var yyyy = hoy.getFullYear();
+        hoy = dd + '/' + mm + '/' + yyyy;
+
+        // Actualizamos todos los registros que coincidan con ese email/ID por si hay duplicados en DynamoDB
+        const resultadosUpdate = [];
+        for (const cliente of resultDb) {
+            const paramsUpdate = {
+                TableName: "cliente",
+                Key: { "id": cliente.id },
+                UpdateExpression: "SET #p = :p, #f = :f",
+                ExpressionAttributeNames: {
+                    "#p": "password",
+                    "#f": "fecha_cambio_password"
+                },
+                ExpressionAttributeValues: {
+                    ":p": password,
+                    ":f": hoy
+                },
+                ReturnValues: "ALL_NEW"
+            };
+
+            const updated = await docClient.update(paramsUpdate).promise();
+            resultadosUpdate.push(updated.Attributes);
+        }
+
+        console.log("==> Password actualizada en DB:", JSON.stringify(resultadosUpdate, null, 2));
+        res.status(200).send({ response: "OK", message: "updated", data: resultadosUpdate });
+
+    } catch (err) {
+        console.error("==> Error en resetCliente:", err);
+        res.status(400).send({ response: "ERROR", message: "DB access error " + err });
+    }
 });
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*
 /*                                                       API REST ticket                                                             *
