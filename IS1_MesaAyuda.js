@@ -261,7 +261,7 @@ async function scanDb(contacto) {
     const paramsScan = { // ScanInput
       TableName: "cliente", // required
       Select: "ALL_ATTRIBUTES" || "ALL_PROJECTED_ATTRIBUTES" || "SPECIFIC_ATTRIBUTES" || "COUNT",
-      FilterExpression : 'id = :contacto',
+      FilterExpression : 'contacto = :contacto OR id = :contacto', // TPF punto 3: busca el correo en contacto (clientes originales) o en id (altas anteriores)
       ExpressionAttributeValues : {':contacto' : scanKey}
     };      
     var objectPromise = await docClient.scan(paramsScan).promise().then((data) => {
@@ -308,7 +308,8 @@ app.post('/api/addCliente', (req,res) => {
         hoy = dd + '/' + mm + '/' + yyyy;
     
         const newCliente = {
-         id                    : contacto,
+         id                    : crypto.randomUUID(),
+         contacto              : contacto,  // TPF punto 3: guarda el correo también en contacto, que es donde lo busca el login por e-mail
          nombre                : nombre,
          password              : password,
          activo                : true,
