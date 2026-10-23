@@ -524,6 +524,17 @@ app.post('/api/resetCliente', (req,res) => {
             return;
         }
 
+        // --- VALIDACIÓN DE CONTRASEÑA REPETIDA ---
+        const passwordActual = jsonParser('password', data.Items[0]); 
+
+        if (password === passwordActual) {
+            res.status(400).send(JSON.stringify({
+                response: "ERROR", 
+                message: "La nueva contraseña no puede ser igual a la que ya tenías"
+            }));
+            return;
+        }
+
         // id interno del cliente encontrado: es la clave de la tabla para poder actualizarlo
         const id = jsonParser('id', data.Items[0]);
 
