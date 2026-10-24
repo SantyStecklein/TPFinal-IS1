@@ -280,7 +280,7 @@ app.post('/api/addCliente', (req,res) => {
     const {contacto} = req.body;
     const {password} = req.body;
     const {nombre}   = req.body;
-    console.log("addCliente: contacto("+contacto+") nombre("+nombre+") password("+password+")");
+    console.log("addCliente: Se ha registrado el contacto("+contacto+"), con nombre("+nombre+")");
     
     if (!password) {
         res.status(400).send({response : "ERROR" , message: "Password no informada"});
