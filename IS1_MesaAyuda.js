@@ -800,4 +800,139 @@ app.post('/api/updateTicket', (req,res) => {
     })
 
 });
+
+/*=========================================================================
+ * PUNTO 6: Estadística de tickets (/resumenTickets)
+ * Función REST API (sin GUI). Acepta GET y POST.
+ *========================================================================*/
+
+// Saca el usuario y la password del pedido:
+//  - GET : van en la URL   -> /resumenTickets?ID=usuario&PASSWORD=clave
+//          (también acepta el formato de la consigna: ?ID=usuario?PASSWORD=clave)
+//  - POST: van en un JSON  -> {"ID":"usuario","PASSWORD":"clave"}
+function obtenerCredencialesResumen(req) {
+    let idUsuario = null;
+    let password = null;
+
+    if (req.method === 'POST') {
+        idUsuario = req.body.ID || req.body.id || req.body.contacto;
+        password = req.body.PASSWORD || req.body.password;
+    } else if (req.method === 'GET') {
+        idUsuario = req.query.ID || req.query.id || req.query.contacto;
+        password = req.query.PASSWORD || req.query.password;
+
+        // Formato literal de la consigna: ?ID={usuario}?PASSWORD={password}
+        if (idUsuario && !password) {
+            if (idUsuario.includes('?PASSWORD=')) {
+                const partes = idUsuario.split('?PASSWORD=');
+                idUsuario = partes[0];
+                password = partes[1];
+            } else if (idUsuario.includes('?password=')) {
+                const partes = idUsuario.split('?password=');
+                idUsuario = partes[0];
+                password = partes[1];
+            }
+        }
+    }
+
+    return {
+        idUsuario: idUsuario ? String(idUsuario).trim() : null,
+        password: password ? String(password).trim() : null
+    };
+}
+
+const resumenTickets = (req, res) => {
+    const { idUsuario, password } = obtenerCredencialesResumen(req);
+
+    // 1. Tienen que venir el usuario y la password
+    if (!idUsuario || !password) {
+        return res.status(400).json({
+            response: "ERROR",
+            mensaje: "Faltan parámetros requeridos: ID y PASSWORD."
+        });
+    }
+
+    // 2. Trae todos los clientes de la base
+    const paramsCliente = {
+        TableName: "cliente"
+    };
+
+    docClient.scan(paramsCliente, (errCliente, dataClientes) => {
+        if (errCliente) {
+            console.error("Error al escanear tabla cliente en resumenTickets:", errCliente);
+            return res.status(500).json({
+                response: "ERROR",
+                mensaje: "Error interno al consultar la base de datos de clientes."
+            });
+        }
+
+        const clientes = dataClientes.Items || [];
+
+        // 3. Valida que el usuario exista (por ID o por correo), que la password coincida y que esté activo
+        const usuarioAutenticado = clientes.find(
+            (c) => (String(c.id) === idUsuario || String(c.ID) === idUsuario || c.contacto === idUsuario) &&
+                   String(c.password) === password && c.activo == true   // TPF punto 6: igual que el login, un cliente inactivo no entra
+        );
+
+        if (!usuarioAutenticado) {
+            return res.status(401).json({
+                response: "invalido",
+                mensaje: "Usuario o password inválidos."
+            });
+        }
+
+        // 4. Trae todos los tickets de la base
+        const paramsTicket = {
+            TableName: "ticket"
+        };
+
+        docClient.scan(paramsTicket, (errTicket, dataTickets) => {
+            if (errTicket) {
+                console.error("Error al escanear tabla ticket en resumenTickets:", errTicket);
+                return res.status(500).json({
+                    response: "ERROR",
+                    mensaje: "Error interno al consultar la base de datos de tickets."
+                });
+            }
+
+            const tickets = dataTickets.Items || [];
+
+            // 5. Arma el JSON anidado: para cada cliente, su id, su correo, la cantidad de tickets y el detalle de cada uno
+            const resumenPorCliente = clientes.map((cliente) => {
+                const idClienteActual = cliente.id || cliente.ID;
+                const correoClienteActual = cliente.contacto;
+
+                // TPF punto 6: el ticket guarda el id del cliente, se compara solo por id (así no se cuenta dos veces)
+                const ticketsCliente = tickets.filter(
+                    (t) => String(t.clienteID) === String(idClienteActual)
+                );
+
+                const detalleTickets = ticketsCliente.map((t) => ({
+                    id_ticket: t.id || t.ID,
+                    fecha_apertura: t.fecha_apertura || t.ultima_fecha || t.fecha || "Sin fecha registrada",
+                    estado: t.estado !== undefined ? t.estado : t.estado_solucion
+                }));
+
+                return {
+                    id_cliente: idClienteActual,
+                    correo: correoClienteActual,
+                    numero_tickets: detalleTickets.length,
+                    tickets: detalleTickets
+                };
+            });
+
+            // 6. Devuelve el JSON final
+            return res.status(200).json({
+                response: "OK",
+                clientes: resumenPorCliente
+            });
+        });
+    });
+};
+
+// GET y POST, con y sin el prefijo /api
+app.get('/resumenTickets', resumenTickets);
+app.post('/resumenTickets', resumenTickets);
+app.get('/api/resumenTickets', resumenTickets);
+app.post('/api/resumenTickets', resumenTickets);
 /*-------------------------------------------------[ Fin del API REST ]-------------------------------------------------------------*/
