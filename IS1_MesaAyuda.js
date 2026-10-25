@@ -936,4 +936,120 @@ app.get('/resumenTickets', resumenTickets);
 app.post('/resumenTickets', resumenTickets);
 app.get('/api/resumenTickets', resumenTickets);
 app.post('/api/resumenTickets', resumenTickets);
+
+/*=========================================================================
+ * PUNTO 7: Acceso a Tickets (/getTicket)
+ * Función REST API (sin GUI). Acepta GET y POST.
+ *========================================================================*/
+
+// Saca usuario, password y ticket del pedido:
+//  - GET : van en la URL   -> /getTicket?ID=usuario&PASSWORD=clave&TICKET=idTicket
+//          (también acepta el formato de la consigna: ?ID=usuario?PASSWORD=clave?TICKET=idTicket)
+//  - POST: van en un JSON  -> {"ID":"usuario","PASSWORD":"clave","TICKET":"idTicket"}
+function obtenerCredencialesTicket(req) {
+    const origen = (req.method === 'POST') ? (req.body || {}) : (req.query || {});
+    let idUsuario = origen.ID || origen.id || origen.contacto;
+    let password  = origen.PASSWORD || origen.password;
+    let ticketId  = origen.TICKET || origen.ticket;
+
+    if (req.method === 'GET') {
+        // Formato literal de la consigna: todo queda pegado dentro del primer valor
+        if (idUsuario && !password) {
+            const m = String(idUsuario).match(/^(.*?)\?PASSWORD=(.*?)(?:\?TICKET=(.*))?$/i);
+            if (m) {
+                idUsuario = m[1];
+                password = m[2];
+                ticketId = ticketId || m[3];
+            }
+        } else if (password && !ticketId) {
+            const m = String(password).match(/^(.*?)\?TICKET=(.*)$/i);
+            if (m) {
+                password = m[1];
+                ticketId = m[2];
+            }
+        }
+    }
+
+    return {
+        idUsuario: idUsuario ? String(idUsuario).trim() : null,
+        password: password ? String(password) : null,
+        ticketId: ticketId ? String(ticketId).trim() : null
+    };
+}
+
+const getTicketValidado = (req, res) => {
+    const { idUsuario, password, ticketId } = obtenerCredencialesTicket(req);
+
+    // 1. Tienen que venir el usuario, la password y el ticket
+    if (!idUsuario || !password || !ticketId) {
+        return res.status(400).json({
+            response: "ERROR",
+            message: "Faltan parámetros requeridos: ID, PASSWORD y TICKET."
+        });
+    }
+
+    // 2. Primero se valida al cliente (existe, password correcta y activo).
+    //    Si no es válido se devuelve error SIN consultar el ticket.
+    const paramsCliente = {
+        TableName: "cliente",
+        FilterExpression: 'contacto = :u OR id = :u',
+        ExpressionAttributeValues: { ':u': idUsuario }
+    };
+
+    docClient.scan(paramsCliente, (errCliente, dataClientes) => {
+        if (errCliente) {
+            console.error("Error al buscar el cliente en getTicket:", errCliente);
+            return res.status(500).json({
+                response: "ERROR",
+                message: "Error interno al consultar la base de datos de clientes."
+            });
+        }
+
+        const cliente = (dataClientes.Items || []).find(
+            (c) => String(c.password) === password && c.activo == true
+        );
+
+        if (!cliente) {
+            return res.status(401).json({
+                response: "invalido",
+                message: "Usuario o password inválidos."
+            });
+        }
+
+        // 3. Recién ahora se consulta el ticket
+        const paramsTicket = {
+            TableName: "ticket",
+            Key: { "id": ticketId }
+        };
+
+        docClient.get(paramsTicket, (errTicket, dataTicket) => {
+            if (errTicket) {
+                console.error("Error al buscar el ticket en getTicket:", errTicket);
+                return res.status(500).json({
+                    response: "ERROR",
+                    message: "Error interno al consultar la base de datos de tickets."
+                });
+            }
+
+            if (!dataTicket || !dataTicket.Item) {
+                return res.status(400).json({
+                    response: "ERROR",
+                    message: "ticket invalido"
+                });
+            }
+
+            // 4. Devuelve el id del cliente, su correo y todos los datos del ticket
+            return res.status(200).json({
+                response: "OK",
+                id_cliente: cliente.id,
+                correo: cliente.contacto,
+                ticket: dataTicket.Item
+            });
+        });
+    });
+};
+
+// GET y POST sobre /getTicket (el /api/getTicket original del profe queda como estaba)
+app.get('/getTicket', getTicketValidado);
+app.post('/getTicket', getTicketValidado);
 /*-------------------------------------------------[ Fin del API REST ]-------------------------------------------------------------*/
