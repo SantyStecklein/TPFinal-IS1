@@ -815,8 +815,9 @@ function obtenerCredencialesResumen(req) {
     let password = null;
 
     if (req.method === 'POST') {
-        idUsuario = req.body.ID || req.body.id || req.body.contacto;
-        password = req.body.PASSWORD || req.body.password;
+        const cuerpo = req.body || {};
+        idUsuario = cuerpo.ID || cuerpo.id || cuerpo.contacto;
+        password = cuerpo.PASSWORD || cuerpo.password;
     } else if (req.method === 'GET') {
         idUsuario = req.query.ID || req.query.id || req.query.contacto;
         password = req.query.PASSWORD || req.query.password;
