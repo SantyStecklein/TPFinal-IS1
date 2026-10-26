@@ -94,67 +94,6 @@ app.get('/api/cliente', (req,res) => {
     console.log("API cliente: OK");
 });
 
-
-
-/*---
-   ---->>>> ESTO QUE SIGUE DEBAJO ES EL CODIGO ORIGINAL, QUE FUE COMENTADO POR LAS DUDAS PERO EN UN FUTURO HABRIA QUE BORRARLO <<<<----
-  /api/loginCliente
-  Esta API permite acceder a un cliente por ID y comparar la password pasada en un JSON en el cuerpo con la indicada en el DB
-*/  
-// app.post('/api/loginCliente', (req,res) => {
-
-//     const { id } = req.body;
-//     const {password} = req.body;
-
-//     console.log("loginCliente: id("+id+") password ("+password+")");
-
-//     if (!password) {
-//         res.status(400).send({response : "ERROR" , message : "Password no informada"});
-//         return;
-//     }    
-//     if (!id) {
-//         res.status(400).send({response : "ERROR" , message : "id no informado"});
-//         return;
-//     }    
-
-//     let getClienteByKey = function () {
-//         var params = {
-//             TableName: "cliente",
-//             Key: {
-//                 "id" : id
-//             }
-//         };
-//         docClient.get(params, function (err, data) {
-//             if (err) {
-//                 res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
-//             }
-//             else {
-//                 if (Object.keys(data).length == 0) {
-//                     res.status(400).send({response : "ERROR" , message : "Cliente invalido"});
-//                 } else {
-//                     const paswd=jsonParser('password',data.Item);
-//                     const activo=jsonParser('activo',data.Item);
-//                     const id=jsonParser('id',data.Item);
-//                     const contacto=jsonParser('contacto',data.Item);
-//                     if (password == paswd) {
-//                         if (activo == true) {
-//                             const nombre=jsonParser('nombre',data.Item);
-//                             const fecha_ultimo_ingreso=jsonParser('fecha_ultimo_ingreso',data.Item);
-//                             res.status(200).send(JSON.stringify({response : "OK", "id" : id, "nombre" : nombre, "contacto" : contacto, "fecha_ultimo_ingreso": fecha_ultimo_ingreso}));    
-//                         } else {
-//                             res.status(400).send(JSON.stringify({response : "ERROR", message : "Cliente no activo"}));    
-//                         }
-//                     } else {
-//                        res.status(400).send(JSON.stringify({response : "ERROR" , message : "usuario incorrecto"}));
-//                     }    
-//             }    
-//             }
-//         })
-//     }
-//     getClienteByKey();
-
-// });
-
 /*---
   /api/loginClienteEmail
   Permite loguear a un cliente usando su correo electrónico (campo "contacto")
@@ -352,7 +291,7 @@ app.post('/api/updateCliente', (req,res) => {
     var activo = ((req.body.activo+'').toLowerCase() === 'true')
     var registrado = ((req.body.registrado+'').toLowerCase() === 'true')
 
-    console.log("updateCliente: id("+id+") nombre("+nombre+") password("+password+") activo("+activo+") registrado("+registrado+")");
+    console.log("updateCliente: id("+id+") nombre("+nombre+") activo("+activo+") registrado("+registrado+")");
 
     if (!id) {
         res.status(400).send({response : "ERROR" , message: "Id no informada"});
@@ -424,72 +363,6 @@ app.post('/api/updateCliente', (req,res) => {
 
 
 });
-/*-------
-/api/resetCliente
-Permite cambiar la password de un cliente
-*/
-// Funcion de resetCliente original comentada
-// app.post('/api/resetCliente', (req,res) => {
-    
-//     const {id}       = req.body;
-//     const {password} = req.body;
- 
-//     if (!id) {
-//         res.status(400).send({response : "ERROR" , message: "Id no informada"});
-//         return;
-//     }
-
-//     if (!password) {
-//         res.status(400).send({response : "ERROR" , message: "Password no informada"});
-//         return;
-//     }
-
-//     var params = {
-//         TableName: "cliente",
-//         Key: {
-//             "id" : id
-//             //test use "id": "0533a95d-7eef-4c6b-b753-1a41c9d1fbd0"   
-//              }
-//         };
-        
-//     docClient.get(params, function (err, data) {
-//         if (err)  {
-//             res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+ null}));
-//             return;
-//         } else {
-
-//             if (Object.keys(data).length == 0) {
-//                 res.status(400).send(JSON.stringify({"response":"ERROR",message : "Cliente no existe"}),null,2);
-//                 return;
-//             } else {
-
-//                 const paramsUpdate = { 
-   
-//                     ExpressionAttributeNames: { 
-//                          "#p": "password" 
-//                     }, 
-//                     ExpressionAttributeValues: { 
-//                         ":p": password 
-//                    }, 
-//                    Key: { 
-//                        "id": id 
-//                    }, 
-//                    ReturnValues: "ALL_NEW", 
-//                    TableName: "cliente", 
-//                    UpdateExpression: "SET #p = :p" 
-//                 };
-//                 docClient.update(paramsUpdate, function (err, data) {
-//                     if (err)  {
-//                         res.status(400).send(JSON.stringify({response : "ERROR", message : "DB access error "+err}));
-//                         return;
-//                     } else {
-//                         res.status(200).send(JSON.stringify({response : "OK", message : "updated" , "data": data}));
-//                     }    
-//                 });    
-//             }
-//         }    
-//     })
-// });
 
 app.post('/api/resetCliente', (req,res) => {
 
