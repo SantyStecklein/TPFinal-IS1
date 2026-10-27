@@ -107,7 +107,7 @@ app.get('/api/cliente', (req,res) => {
 */
 app.post('/api/loginClienteEmail', (req,res) => { /* Punto 1 */
 
-    const { contacto } = req.body;
+    const { contacto } = req.body; /* Punto 1 */
     const { password } = req.body;
 
     console.log("loginClienteEmail: Intento de acceso de contacto("+contacto+")"); /* Punto 2 */
@@ -450,7 +450,7 @@ app.post('/api/resetCliente', (req,res) => {
 /*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*=*/
 
 /*---------
-Función para realizar el SCAN de un DB de cliente usando contacto como clave para la búsqueda (no es clave formal del DB)
+Función para realizar el SCAN de un DB de ticket usando clienteID como clave para la búsqueda (no es clave formal del DB)
 */
 async function scanDbTicket(clienteID) {
     var docClient = new AWS.DynamoDB.DocumentClient();
@@ -497,7 +497,7 @@ app.post('/api/listarTicket', (req,res) => {
   getTicket
   API REST para obtener los detalles de un ticket
 */
-app.post('/api/getTicket', (req,res) => {
+app.post('/api/getTicket', (req,res) => { /* No usado */
     const {id}  = req.body;
     console.log("getTicket: id("+id+")");
  
@@ -531,7 +531,7 @@ app.post('/api/getTicket', (req,res) => {
 /api/addTicket
 API REST para agregar ticket (genera id)
 */
-app.post('/api/addTicket', (req,res) => {
+app.post('/api/addTicket', (req,res) => {  /* No usado */
 
     const {clienteID} = req.body;
     const estado_solucion = 1;
@@ -574,7 +574,7 @@ app.post('/api/addTicket', (req,res) => {
 /api/updateTicket
 Dado un id actualiza el ticket, debe informarse la totalidad del ticket excepto ultimo_contacto
 */
-app.post('/api/updateTicket', (req,res) => {
+app.post('/api/updateTicket', (req,res) => {  /* No usado */
 
     const {id} = req.body;
     const {clienteID} = req.body;
