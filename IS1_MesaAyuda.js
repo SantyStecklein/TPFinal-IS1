@@ -105,12 +105,12 @@ app.get('/api/cliente', (req,res) => {
   recorrer la tabla con un scan() y filtrar por el campo contacto, en vez
   de pedir un único registro por clave.
 */
-app.post('/api/loginClienteEmail', (req,res) => {
+app.post('/api/loginClienteEmail', (req,res) => { /* Punto 1 */
 
     const { contacto } = req.body;
     const { password } = req.body;
 
-    console.log("loginClienteEmail: Intento de acceso de contacto("+contacto+")");
+    console.log("loginClienteEmail: Intento de acceso de contacto("+contacto+")"); /* Punto 2 */
 
     if (!password) {
         res.status(400).send({response : "ERROR" , message : "Password no informada"});
@@ -148,7 +148,7 @@ app.post('/api/loginClienteEmail', (req,res) => {
         const fecha_ultimo_ingreso = jsonParser('fecha_ultimo_ingreso', cliente);
 
         if (password != paswd) {
-            res.status(400).send(JSON.stringify({response : "INVALIDO" , message : "usuario incorrecto"}));
+            res.status(400).send(JSON.stringify({response : "INVALIDO" , message : "usuario incorrecto"})); /* Punto 2 */
             return;
         }
         if (activo != true) {
@@ -219,7 +219,7 @@ app.post('/api/addCliente', (req,res) => {
     const {contacto} = req.body;
     const {password} = req.body;
     const {nombre}   = req.body;
-    console.log("addCliente: Se ha registrado el contacto("+contacto+"), con nombre("+nombre+")");
+    console.log("addCliente: Se ha registrado el contacto("+contacto+"), con nombre("+nombre+")"); /* Punto 2 */
     
     if (!password) {
         res.status(400).send({response : "ERROR" , message: "Password no informada"});
@@ -291,7 +291,7 @@ app.post('/api/updateCliente', (req,res) => {
     var activo = ((req.body.activo+'').toLowerCase() === 'true')
     var registrado = ((req.body.registrado+'').toLowerCase() === 'true')
 
-    console.log("updateCliente: id("+id+") nombre("+nombre+") activo("+activo+") registrado("+registrado+")");
+    console.log("updateCliente: id("+id+") nombre("+nombre+") activo("+activo+") registrado("+registrado+")"); /* Punto 2*/
 
     if (!id) {
         res.status(400).send({response : "ERROR" , message: "Id no informada"});

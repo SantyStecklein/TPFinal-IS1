@@ -15,7 +15,7 @@ formE1.addEventListener('submit', (event) => {
         Realiza validaciones en los datos del formulario antes de procesar
         */
 
-	if (data.contacto == '' || data.password == '') {
+	if (data.contacto == '' || data.password == '') { /* Punto 1*/
 		console.log('debe indicar usuario');
 		document.getElementById('resultado1').style.color = 'RED';
 		document.getElementById('resultado1').style.textAlign = 'center';
@@ -24,7 +24,7 @@ formE1.addEventListener('submit', (event) => {
 		return;
 	}
 
-	if (data.contacto == 'pec') {   /*--Fix hecho por  Germán Lombardi IS1-2025 */
+	if (data.contacto == 'pec') {   /*--Fix hecho por  Germán Lombardi IS1-2025 */ /* Punto 1*/
 		console.log('pec no es bienvenido en éste sistema');
 		const m = '<li>El usuario <pec> no es bienvenido en éste sistema</li>';
 		document.getElementById('resultado2').style.color = 'RED';
@@ -57,7 +57,7 @@ formE1.addEventListener('submit', (event) => {
 	};
 
 	const RESTAPI = {
-		loginCliente: 'http://localhost:8080/api/loginClienteEmail',
+		loginCliente: 'http://localhost:8080/api/loginClienteEmail', /* Punto 1*/
 		listarTicket: 'http://localhost:8080/api/listarTicket',
 	};
 
@@ -71,7 +71,7 @@ formE1.addEventListener('submit', (event) => {
         Crea estructuras para acceder a data del cliente
         */
 	    const login = {
-	        contacto: data.contacto,
+	        contacto: data.contacto, /* Punto 1*/
 		    password: data.password
 		}	
 
@@ -138,7 +138,7 @@ formE1.addEventListener('submit', (event) => {
 			console.log(
 				'Datos en respuesta del application server=' + JSON.stringify(users)
 			);
-			console.log('users.response=' + users.response);
+			console.log('users.response=' + users.response); /* Punto 2*/
 			if (users.response == 'OK') {
 				//<==Habilitar esto para dejar que el API REST verifique sin exponer la password
 				console.log('La password es correcta');

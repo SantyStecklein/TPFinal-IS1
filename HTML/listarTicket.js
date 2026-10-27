@@ -28,6 +28,7 @@ console.log("contacto:"+query.contacto);
 console.log("ultima_fecha:"+query.fecha_ultimo_ingreso);
 console.log("mode:"+query.mode);
 
+/* Punto 4*/
 document.getElementById("lastlogin").innerHTML = "<table><tr><td>Cliente</td><td>"+query.id+"</td></tr><tr><td>Nombre</td><td>"+query.nombre+"</td></tr><tr><td>Contacto</td><td>"+query.contacto+"</td></tr><tr><td>Ultimo ingreso</td><td>"+query.fecha_ultimo_ingreso+"</td></tr></table>";
 
 
@@ -111,7 +112,7 @@ fetch(`${APIREST_URL}`,options)
     table.style.border="1px solid";
     table.style.backgroundColor="##626607";
 //ticket.uresponse.forEach((t)=> { 
-    ticket.data.forEach((t)=> { 
+    (ticket.data || []).forEach((t)=> { /* Modificacion para que salga que no hay tickets pendientes y no tire error */
         console.log(t.clienteID)
         if (t.clienteID == query.id) {
             if (f==false) {
