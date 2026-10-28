@@ -35,6 +35,11 @@ formE1.addEventListener('submit', (event) => {
 		return;
 	}
 
+	if (data.password !== data.password_repeat) {
+    	mensaje.textContent = 'Las contraseñas no coinciden.';
+    	return;
+	}
+
 	// La aceptación de términos y condiciones también es obligatoria
 	if (data.termscondition != 'on') {
 		mensaje.textContent = 'Debe aceptar los T&C para poder usar el sistema';
