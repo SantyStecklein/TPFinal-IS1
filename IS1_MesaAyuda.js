@@ -219,7 +219,6 @@ app.post('/api/addCliente', (req,res) => {
     const {contacto} = req.body;
     const {password} = req.body;
     const {nombre}   = req.body;
-    console.log("addCliente: Se ha registrado el contacto("+contacto+"), con nombre("+nombre+")"); /* Punto 2 */
     
     if (!password) {
         res.status(400).send({response : "ERROR" , message: "Password no informada"});
@@ -271,6 +270,7 @@ app.post('/api/addCliente', (req,res) => {
             if (err) {
                 res.status(400).send(JSON.stringify({response : "ERROR", message : "DB error" + err}));
             } else {
+                console.log("addCliente: Se ha registrado el contacto("+contacto+"), con nombre("+nombre+")"); /* Punto 2 */
                 res.status(200).send(JSON.stringify({response : "OK", "cliente": newCliente}));
             }
         });
